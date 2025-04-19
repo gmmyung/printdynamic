@@ -1,2 +1,2 @@
 pub mod interpreter;
-mod segments;
+pub mod segments;

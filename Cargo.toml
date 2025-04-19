@@ -2,6 +2,7 @@
 name = "printdynamic"
 
 version = "0.1.0"
+authors = ["gmmyung"]
 edition = "2024"
 
 [dependencies]
