@@ -1,0 +1,10 @@
+[package]
+name = "printdynamic"
+
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+gcode = "0.6.1"
+nalgebra = "0.33.2"
