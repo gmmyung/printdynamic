@@ -2,9 +2,9 @@
 use nalgebra::{Matrix3, Vector3};
 
 pub trait Segment {
-    fn center(&self) -> Vector3<f32>;
-    fn inertia(&self) -> Matrix3<f32>;
-    fn mass(&self) -> f32;
+    pub fn center(&self) -> Vector3<f32>;
+    pub fn inertia(&self) -> Matrix3<f32>;
+    pub fn mass(&self) -> f32;
 }
 
 pub struct LineSeg {
