@@ -242,9 +242,9 @@ mod tests {
         assert!((c.x - 5.0).abs() < EPS);
         assert!((c.y - 10.0).abs() < EPS);
         assert!((c.z).abs() < EPS);
-        // volume matches extrusion->mass conversion
+        // mass matches extrusion->mass conversion
         let expected_mass = 5.0 * std::f32::consts::PI * 1.75_f32.powi(2) / 4.0 * (1.25 / 1000.0);
-        assert!((seg.volume() - expected_mass).abs() < EPS);
+        assert!((seg.mass() - expected_mass).abs() < EPS);
     }
 
     #[test]
@@ -256,14 +256,12 @@ mod tests {
         let first = &segs[0];
         let second = &segs[1];
         assert!(
-            (first.volume()
-                - 2.0 * std::f32::consts::PI * 1.75_f32.powi(2) / 4.0 * (1.25 / 1000.0))
+            (first.mass() - 2.0 * std::f32::consts::PI * 1.75_f32.powi(2) / 4.0 * (1.25 / 1000.0))
                 .abs()
                 < EPS
         );
         assert!(
-            (second.volume()
-                - 3.0 * std::f32::consts::PI * 1.75_f32.powi(2) / 4.0 * (1.25 / 1000.0))
+            (second.mass() - 3.0 * std::f32::consts::PI * 1.75_f32.powi(2) / 4.0 * (1.25 / 1000.0))
                 .abs()
                 < EPS
         );

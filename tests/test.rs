@@ -15,11 +15,11 @@ fn integration() -> Result<()> {
     let segments = parse_segments(&text);
 
     // 3. aggregate results
-    let total_mass: f32 = segments.iter().map(|s| s.volume()).sum();
+    let total_mass: f32 = segments.iter().map(|s| s.mass()).sum();
     let total_inertia: Matrix3<f32> = segments.iter().map(|s| s.inertia()).sum();
     let total_center: Vector3<f32> = segments
         .iter()
-        .map(|s| s.center() * s.volume())
+        .map(|s| s.center() * s.mass())
         .sum::<Vector3<f32>>()
         / total_mass;
 

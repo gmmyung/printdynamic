@@ -4,7 +4,7 @@ use nalgebra::{Matrix3, Vector3};
 pub trait Segment {
     fn center(&self) -> Vector3<f32>;
     fn inertia(&self) -> Matrix3<f32>;
-    fn volume(&self) -> f32;
+    fn mass(&self) -> f32;
 }
 
 pub struct LineSeg {
@@ -24,7 +24,7 @@ impl Segment for LineSeg {
     fn center(&self) -> Vector3<f32> {
         (self.start + self.end) * 0.5
     }
-    fn volume(&self) -> f32 {
+    fn mass(&self) -> f32 {
         self.mass
     }
 
@@ -52,7 +52,7 @@ impl Segment for ArcSeg {
             self.center.z,
         )
     }
-    fn volume(&self) -> f32 {
+    fn mass(&self) -> f32 {
         self.mass
     }
 
@@ -107,13 +107,12 @@ mod tests {
     const EPS: f32 = 1e-5;
 
     #[test]
-    fn test_line_seg_center_volume_inertia() {
+    fn test_line_seg_center_mass_inertia() {
         let start = Vector3::new(0.0, 0.0, 0.0);
         let end = Vector3::new(1.0, 0.0, 0.0);
         let mass = 2.0;
         let seg = LineSeg { start, end, mass };
-        // volume == mass
-        assert_eq!(seg.volume(), mass);
+        assert_eq!(seg.mass(), mass);
         // center at midpoint
         let c = seg.center();
         assert!((c.x - 0.5).abs() < EPS);
@@ -130,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn test_arc_seg_center_volume_full_circle() {
+    fn test_arc_seg_center_mass_full_circle() {
         let center = Vector3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
         let start_ang = 0.0;
@@ -143,8 +142,7 @@ mod tests {
             delta_ang,
             mass,
         };
-        // volume == mass
-        assert_eq!(seg.volume(), mass);
+        assert_eq!(seg.mass(), mass);
         // center remains at origin
         let c = seg.center();
         assert!((c.x).abs() < EPS);
