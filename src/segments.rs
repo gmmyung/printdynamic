@@ -98,3 +98,84 @@ impl Segment for ArcSeg {
         Matrix3::identity() * (λ * r * sum_r2) - q * (λ * r)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra::Vector3;
+
+    const EPS: f32 = 1e-5;
+
+    #[test]
+    fn test_line_seg_center_volume_inertia() {
+        let start = Vector3::new(0.0, 0.0, 0.0);
+        let end = Vector3::new(1.0, 0.0, 0.0);
+        let mass = 2.0;
+        let seg = LineSeg { start, end, mass };
+        // volume == mass
+        assert_eq!(seg.volume(), mass);
+        // center at midpoint
+        let c = seg.center();
+        assert!((c.x - 0.5).abs() < EPS);
+        assert!((c.y).abs() < EPS);
+        assert!((c.z).abs() < EPS);
+        // inertia: [0, 2/3, 2/3]
+        let i = seg.inertia();
+        assert!((i[(0, 0)] - 0.0).abs() < EPS);
+        assert!((i[(1, 1)] - (2.0 / 3.0)).abs() < EPS);
+        assert!((i[(2, 2)] - (2.0 / 3.0)).abs() < EPS);
+        assert!((i[(0, 1)]).abs() < EPS);
+        assert!((i[(0, 2)]).abs() < EPS);
+        assert!((i[(1, 2)]).abs() < EPS);
+    }
+
+    #[test]
+    fn test_arc_seg_center_volume_full_circle() {
+        let center = Vector3::new(0.0, 0.0, 0.0);
+        let radius = 1.0;
+        let start_ang = 0.0;
+        let delta_ang = std::f32::consts::PI * 2.0;
+        let mass = 4.2;
+        let seg = ArcSeg {
+            center,
+            radius,
+            start_ang,
+            delta_ang,
+            mass,
+        };
+        // volume == mass
+        assert_eq!(seg.volume(), mass);
+        // center remains at origin
+        let c = seg.center();
+        assert!((c.x).abs() < EPS);
+        assert!((c.y).abs() < EPS);
+        assert!((c.z).abs() < EPS);
+        // inertia diag == [mass/2, mass/2, mass]
+        let i = seg.inertia();
+        assert!((i[(0, 0)] - mass * 0.5).abs() < EPS);
+        assert!((i[(1, 1)] - mass * 0.5).abs() < EPS);
+        assert!((i[(2, 2)] - mass).abs() < EPS);
+        // symmetric
+        assert!((i - i.transpose()).norm() < EPS);
+    }
+
+    #[test]
+    fn test_arc_seg_center_semicircle() {
+        let center = Vector3::new(1.0, 2.0, 3.0);
+        let radius = 2.0;
+        let start_ang = 0.0;
+        let delta_ang = std::f32::consts::PI;
+        let mass = 6.0;
+        let seg = ArcSeg {
+            center,
+            radius,
+            start_ang,
+            delta_ang,
+            mass,
+        };
+        // expected center: original + [0, 2*radius/pi]
+        let c = seg.center();
+        let expected = Vector3::new(1.0, 2.0 + (2.0 * 2.0) / std::f32::consts::PI, 3.0);
+        assert!((c - expected).norm() < EPS);
+    }
+}

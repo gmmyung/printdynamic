@@ -1,9 +1,10 @@
 [package]
 name = "printdynamic"
-
+description = "3D printed part analysis tool"
 version = "0.1.0"
 authors = ["gmmyung"]
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.98"
