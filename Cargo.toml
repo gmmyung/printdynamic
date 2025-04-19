@@ -1,12 +1,13 @@
 [package]
-name = "printdynamic"
-description = "3D printed part analysis tool"
+name = "printdynamic_pages"
 version = "0.1.0"
-authors = ["gmmyung"]
 edition = "2024"
-license = "MIT"
 
 [dependencies]
-anyhow = "1.0.98"
-gcode = "0.6.1"
-nalgebra = "0.33.2"
+console_error_panic_hook = "0.1.7"
+leptos = { version = "0.7.8", features = ["csr"] }
+printdynamic = "*"
+serde = "1.0.219"
+serde-wasm-bindgen = "0.6.5"
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.50"
