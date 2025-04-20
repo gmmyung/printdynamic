@@ -499,6 +499,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gloo-timers"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbb143cf96099802033e0d4f4963b19fd2e0b728bcf076cd9cf7f6634f092994"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gloo-utils"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1155,9 +1167,9 @@ dependencies = [
 
 [[package]]
 name = "printdynamic"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4d50e03a402d6fb40eb81d8c399daa044fe508548a8d7ed9d5da24f2867e144"
+checksum = "34fc521741e329210275422d8e0b4c77c4c4d67e44af427ecc0724960591af23"
 dependencies = [
  "anyhow",
  "gcode",
@@ -1170,10 +1182,12 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
+ "gloo-timers",
  "leptos",
  "log",
  "nalgebra",
  "printdynamic",
+ "send_wrapper",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",

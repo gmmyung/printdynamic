@@ -1,27 +1,9 @@
+use gloo_timers::future::TimeoutFuture;
 use leptos::{html::Input, prelude::*, task::spawn_local};
 use log::info;
 use nalgebra::{Matrix3, Vector3};
 use printdynamic::interpreter::parse_segments;
-use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{HtmlInputElement, js_sys::Promise};
-
-#[derive(Clone)]
-enum State {
-    NoFile,
-    Loading,
-    Parsed,
-}
-
-impl std::fmt::Display for State {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            State::NoFile => write!(f, "No File"),
-            State::Loading => write!(f, "Loading..."),
-            State::Parsed => write!(f, "Parsed"),
-        }
-    }
-}
+use web_sys::HtmlInputElement;
 
 // src/main.rs (Leptos app)
 #[component]
@@ -35,24 +17,17 @@ pub fn App() -> impl IntoView {
     let (com, set_com) = signal(Vector3::<f32>::zeros());
     let (inertia, set_inertia) = signal(Matrix3::<f32>::zeros());
     let (inertia_cm, set_inertia_cm) = signal(Matrix3::<f32>::zeros());
-    let (state, set_state) = signal(State::NoFile);
 
-    // A closure that uses spawn_local to run parsing on demand
-    let parse = move |_| {
-        set_state.set(State::Loading);
-        let src = input.get_untracked();
-        spawn_local(async move {
+    let parse_action = Action::new(move |input: &String| {
+        let input = input.to_owned();
+        async move {
             info!("Parsing...");
-            JsFuture::from(Promise::resolve(&JsValue::NULL))
-                .await
-                .unwrap();
-
+            send_wrapper::SendWrapper::new(TimeoutFuture::new(10)).await;
             let segs = parse_segments(
-                &src,
-                &filament_width.get().parse().unwrap(),
-                &filament_density.get().parse().unwrap(),
-            )
-            .unwrap();
+                &input,
+                filament_width.get_untracked().parse().unwrap(),
+                filament_density.get_untracked().parse().unwrap(),
+            );
 
             let total = segs.iter().map(|s| s.as_ref().mass()).sum();
             set_total_mass.set(total);
@@ -75,10 +50,10 @@ pub fn App() -> impl IntoView {
             info!("Parsed → mass={}", total);
             info!("Parsed → com={:?}", com_val);
             info!("Parsed → inertia={:?}", inertia_val);
+        }
+    });
 
-            set_state.set(State::Parsed);
-        });
-    };
+    let pending = parse_action.pending();
 
     async fn getFileContent(input: Option<HtmlInputElement>) -> String {
         let value = input.unwrap().files();
@@ -92,7 +67,7 @@ pub fn App() -> impl IntoView {
     // Bind input, call parse on click, and render signals reactively
     view! {
         <div>
-            <label for="file">"Select a file"</label>
+            <label for="file">"Select a gcode file"</label>
             <input
                 type="file"
                 id="file"
@@ -120,13 +95,18 @@ pub fn App() -> impl IntoView {
                 bind:value=(filament_density, set_filament_density)
             />
             <br/>
-            <button on:click=parse>"Parse"</button>
-
-            <p>{move || format!("State: {}", state.get())}</p>
-            <p>{move || format!("Total Mass: {}g", total_mass.get())}</p>
-            <p>{move || format!("Center of Mass: {:?}mm", com.get())}</p>
-            <p>{move || format!("Inertia Tensor from Origin: {:?}g*mm^2", inertia.get())}</p>
-            <p>{move || format!("Inertia Tensor from Center of Mass: {:?}g*mm^2", inertia_cm.get())}</p>
+            <button on:click=move |_| {parse_action.dispatch(input.get_untracked());}>"Parse"</button>
+            {
+                move || match pending.get() {
+                    true => view! {<p>{"Loading..."}</p>}.into_any(),
+                    false =>view! {
+                        <p>{move || format!("Total Mass: {}g", total_mass.get())}</p>
+                        <p>{move || format!("Center of Mass: {:?}mm", com.get())}</p>
+                        <p>{move || format!("Inertia Tensor from Origin: {:?}g*mm^2", inertia.get())}</p>
+                        <p>{move || format!("Inertia Tensor from Center of Mass: {:?}g*mm^2", inertia_cm.get())}</p>
+                    }.into_any()
+                }
+            }
         </div>
     }
 }
