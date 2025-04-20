@@ -12,7 +12,7 @@ fn integration() -> Result<()> {
     std::io::BufReader::new(std::fs::File::open("arc.gcode")?).read_to_string(&mut text)?;
 
     // 2. parse → segments
-    let segments = parse_segments(&text);
+    let segments = parse_segments(&text, 1.75, 1.25);
 
     // 3. aggregate results
     let total_mass: f32 = segments.iter().map(|s| s.mass()).sum();

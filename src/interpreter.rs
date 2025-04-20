@@ -109,9 +109,9 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new() -> Self {
+    pub fn new(filament_diameter: f32, filament_density: f32) -> Self {
         Self {
-            m: Machine::new(1.75, 1.25),
+            m: Machine::new(filament_diameter, filament_density),
         }
     }
 
@@ -214,8 +214,12 @@ impl Interpreter {
     }
 }
 
-pub fn parse_segments(gcode_src: &str) -> Vec<Box<dyn Segment>> {
-    let mut interp = Interpreter::new();
+pub fn parse_segments(
+    gcode_src: &str,
+    filament_diameter: f32,
+    filament_density: f32,
+) -> Vec<Box<dyn Segment>> {
+    let mut interp = Interpreter::new(filament_diameter, filament_density);
     let mut out = Vec::<Box<dyn Segment>>::new();
 
     for cmd in parse(gcode_src) {
@@ -234,7 +238,7 @@ mod tests {
     #[test]
     fn test_parse_single_line() {
         let src = "G90\nG1 X10.0 Y20.0 E5.0";
-        let segs = parse_segments(src);
+        let segs = parse_segments(src, 1.75, 1.25);
         assert_eq!(segs.len(), 1);
         let seg = &segs[0];
         // center should be midpoint of (0,0) and (10,20)
@@ -250,7 +254,7 @@ mod tests {
     #[test]
     fn test_relative_extrusion_mode() {
         let src = "M83\nG1 X1 Y0 E2.0\nG1 X2 Y0 E3.0";
-        let segs = parse_segments(src);
+        let segs = parse_segments(src, 1.75, 1.25);
         // Two extrusion segments: first E=2.0, then relative E=3.0
         assert_eq!(segs.len(), 2);
         let first = &segs[0];
@@ -271,7 +275,7 @@ mod tests {
     fn test_arc_segment_center() {
         // Move to (10,0), then CCW quarter circle to (0,10) with center at origin
         let src = "G90\nG1 X10 Y0 E1.0\nG3 X0 Y10 I-10 J0 E2.0";
-        let segs = parse_segments(src);
+        let segs = parse_segments(src, 1.75, 1.25);
         assert_eq!(segs.len(), 2);
         let arc = &segs[1];
         let c = arc.center();
@@ -288,7 +292,7 @@ mod tests {
     fn test_no_extrusion_no_segment() {
         // Move without extrusion should produce no segments
         let src = "G1 X5 Y5";
-        let segs = parse_segments(src);
+        let segs = parse_segments(src, 1.75, 1.25);
         assert!(segs.is_empty());
     }
 }
