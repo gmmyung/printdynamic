@@ -199,6 +199,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_log"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be8aed40e4edbf4d3b4431ab260b63fdc40f5780a4766824329ea0f1eefe3c0f"
+dependencies = [
+ "log",
+ "web-sys",
+]
+
+[[package]]
 name = "const_format"
 version = "0.2.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1145,9 +1155,9 @@ dependencies = [
 
 [[package]]
 name = "printdynamic"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "905182b44c638fb57ee6516efef0609ae0133df70e5af9ae8b0ba8a561ac72c0"
+checksum = "f4d50e03a402d6fb40eb81d8c399daa044fe508548a8d7ed9d5da24f2867e144"
 dependencies = [
  "anyhow",
  "gcode",
@@ -1159,12 +1169,16 @@ name = "printdynamic_pages"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
+ "console_log",
  "leptos",
+ "log",
+ "nalgebra",
  "printdynamic",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
