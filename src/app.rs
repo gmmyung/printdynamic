@@ -47,7 +47,12 @@ pub fn App() -> impl IntoView {
                 .await
                 .unwrap();
 
-            let segs = parse_segments(&src);
+            let segs = parse_segments(
+                &src,
+                &filament_width.get().parse().unwrap(),
+                &filament_density.get().parse().unwrap(),
+            )
+            .unwrap();
 
             let total = segs.iter().map(|s| s.as_ref().mass()).sum();
             set_total_mass.set(total);
