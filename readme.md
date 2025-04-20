@@ -2,7 +2,7 @@
 
 Parse any extrusion‑based G‑code file, convert the deposited filament to **mass, center‑of‑mass and full inertia tensors**, and explore the results in a WebAssembly (WASM) app built with **Leptos**.
 
- ![docs](https://img.shields.io/badge/docs.rs-online-blue)  [**Live demo**](https://<user>.github.io/<repo>/) 
+ ![docs.rs](https://img.shields.io/docsrs/printdynamic) [**Live demo**](https://gmmyung.github.io/printdynamic/) 
 
 **TL;DR**  
 1. `cargo install trunk`  
