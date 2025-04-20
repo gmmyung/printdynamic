@@ -9,7 +9,7 @@ console_log = "1.0.0"
 leptos = { version = "0.7.8", features = ["csr"] }
 log = "0.4.27"
 nalgebra = "0.33.2"
-printdynamic = "0.1.1"
+printdynamic = "0.1.2"
 serde = "1.0.219"
 serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = "0.2.100"
