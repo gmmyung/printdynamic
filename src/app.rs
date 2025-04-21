@@ -67,6 +67,9 @@ pub fn App() -> impl IntoView {
     // Bind input, call parse on click, and render signals reactively
     view! {
         <div>
+            <h1>"PrintDynamic"</h1>
+            <h2>": G‑Code Mass & Inertia Analyzer"</h2>
+            <a href="https://github.com/gmmyung/printdynamic">"Github"</a>
             <label for="file">"Select a gcode file"</label>
             <input
                 type="file"
