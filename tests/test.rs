@@ -33,3 +33,18 @@ fn integration() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_malformed_floats_in_real_gcode() -> Result<()> {
+    // Test with test.gcode which contains E-.9 patterns
+    let mut text = String::new();
+    std::io::BufReader::new(std::fs::File::open("test.gcode")?).read_to_string(&mut text)?;
+    
+    // This should not panic - the normalization should handle E-.9 patterns
+    let segments = parse_segments(&text, 1.75, 1.25);
+    
+    println!("Successfully parsed {} segments from test.gcode", segments.len());
+    assert!(segments.len() > 0, "Should parse at least some segments");
+    
+    Ok(())
+}
