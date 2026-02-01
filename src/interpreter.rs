@@ -8,6 +8,54 @@ use gcode::{Mnemonic, parse};
 use nalgebra::Vector3;
 use std::f32::consts::PI;
 
+/// Preprocesses gcode to normalize float values.
+/// 
+/// Some gcode slicers generate floats without leading zeros (e.g., "-.9" or ".5")
+/// which causes parse errors. This function adds the leading zero where needed.
+fn normalize_gcode(gcode: &str) -> String {
+    let mut result = String::with_capacity(gcode.len());
+    let mut chars = gcode.chars().peekable();
+    
+    while let Some(ch) = chars.next() {
+        result.push(ch);
+        
+        // Check if we just wrote a letter followed by a sign or decimal point
+        // that would start a malformed float
+        if ch.is_ascii_uppercase() {
+            // Look ahead to see if we have a malformed float
+            match chars.peek() {
+                // Pattern: Letter followed by decimal (e.g., "E.5")
+                Some(&'.') => {
+                    result.push('0');
+                }
+                // Pattern: Letter followed by minus then decimal (e.g., "E-.9")
+                Some(&'-') => {
+                    // Consume the minus
+                    chars.next();
+                    result.push('-');
+                    // Check if next is a decimal point
+                    if matches!(chars.peek(), Some(&'.')) {
+                        result.push('0');
+                    }
+                }
+                // Pattern: Letter followed by plus then decimal (e.g., "E+.9")
+                Some(&'+') => {
+                    // Consume the plus
+                    chars.next();
+                    result.push('+');
+                    // Check if next is a decimal point
+                    if matches!(chars.peek(), Some(&'.')) {
+                        result.push('0');
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    
+    result
+}
+
 #[derive(Debug)]
 struct Extruder {
     /// the nominal E‑position reported by the G‑code
@@ -219,10 +267,11 @@ pub fn parse_segments(
     filament_diameter: f32,
     filament_density: f32,
 ) -> Vec<Box<dyn Segment>> {
+    let normalized = normalize_gcode(gcode_src);
     let mut interp = Interpreter::new(filament_diameter, filament_density);
     let mut out = Vec::<Box<dyn Segment>>::new();
 
-    for cmd in parse(gcode_src) {
+    for cmd in parse(&normalized) {
         if let Some(seg) = interp.process_cmd(cmd) {
             out.push(seg);
         }
@@ -234,6 +283,48 @@ pub fn parse_segments(
 mod tests {
     use super::*;
     const EPS: f32 = 1e-3;
+
+    #[test]
+    fn test_normalize_gcode_negative_decimal() {
+        let input = "G1 E-.9 F2700";
+        let expected = "G1 E-0.9 F2700";
+        assert_eq!(normalize_gcode(input), expected);
+    }
+
+    #[test]
+    fn test_normalize_gcode_positive_decimal() {
+        let input = "G1 X.5 Y10";
+        let expected = "G1 X0.5 Y10";
+        assert_eq!(normalize_gcode(input), expected);
+    }
+
+    #[test]
+    fn test_normalize_gcode_plus_decimal() {
+        let input = "G1 E+.5 F2700";
+        let expected = "G1 E+0.5 F2700";
+        assert_eq!(normalize_gcode(input), expected);
+    }
+
+    #[test]
+    fn test_normalize_gcode_multiple_values() {
+        let input = "G1 X-.5 Y.3 Z-10 E-.9";
+        let expected = "G1 X-0.5 Y0.3 Z-10 E-0.9";
+        assert_eq!(normalize_gcode(input), expected);
+    }
+
+    #[test]
+    fn test_normalize_gcode_already_normalized() {
+        let input = "G1 X-0.5 Y0.3 E-0.9 F2700";
+        let expected = "G1 X-0.5 Y0.3 E-0.9 F2700";
+        assert_eq!(normalize_gcode(input), expected);
+    }
+
+    #[test]
+    fn test_normalize_gcode_preserves_other_content() {
+        let input = "; Comment with .5 in it\nG1 E-.9 F2700\nG2 I-.5 J.3";
+        let expected = "; Comment with .5 in it\nG1 E-0.9 F2700\nG2 I-0.5 J0.3";
+        assert_eq!(normalize_gcode(input), expected);
+    }
 
     #[test]
     fn test_parse_single_line() {
