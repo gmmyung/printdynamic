@@ -13,15 +13,22 @@ use std::f32::consts::PI;
 /// Some gcode slicers generate floats without leading zeros (e.g., "-.9" or ".5")
 /// which causes parse errors. This function adds the leading zero where needed.
 fn normalize_gcode(gcode: &str) -> String {
-    let mut result = String::with_capacity(gcode.len());
+    let mut result = String::with_capacity(gcode.len() + 128); // Extra space for leading zeros
     let mut chars = gcode.chars().peekable();
+    let mut in_comment = false;
     
     while let Some(ch) = chars.next() {
         result.push(ch);
         
-        // Check if we just wrote a letter followed by a sign or decimal point
-        // that would start a malformed float
-        if ch.is_ascii_uppercase() {
+        // Track if we're in a comment
+        if ch == ';' {
+            in_comment = true;
+        } else if ch == '\n' {
+            in_comment = false;
+        }
+        
+        // Only normalize if we're not in a comment
+        if !in_comment && ch.is_ascii_uppercase() {
             // Look ahead to see if we have a malformed float
             match chars.peek() {
                 // Pattern: Letter followed by decimal (e.g., "E.5")
@@ -323,6 +330,14 @@ mod tests {
     fn test_normalize_gcode_preserves_other_content() {
         let input = "; Comment with .5 in it\nG1 E-.9 F2700\nG2 I-.5 J.3";
         let expected = "; Comment with .5 in it\nG1 E-0.9 F2700\nG2 I-0.5 J0.3";
+        assert_eq!(normalize_gcode(input), expected);
+    }
+
+    #[test]
+    fn test_normalize_gcode_comment_with_uppercase() {
+        // Ensure uppercase letters in comments don't trigger normalization
+        let input = "; E-.5 should not be modified\nG1 E-.9 F2700";
+        let expected = "; E-.5 should not be modified\nG1 E-0.9 F2700";
         assert_eq!(normalize_gcode(input), expected);
     }
 
